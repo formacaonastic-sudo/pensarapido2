@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>PENSA RÁPIDO!</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #002147;
+    color: white;
+    text-align: center;
+}
+
+h1 {
+    font-size: 60px;
+    margin: 30px 0;
+    letter-spacing: 3px;
+    text-shadow: 4px 4px 10px rgba(0,0,0,0.4);
+}
+
+.trovao {
+    font-size: 95px;
+    display: inline-block;
+    animation: piscarTrovao 1.5s infinite;
+}
+.trovao:last-child {
+    animation-delay: 0.7s;
+}
+@keyframes piscarTrovao {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+#credits {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+#menu {
+    margin-top: 30px;
+}
+
+.level-btn {
+    font-size: 40px;
+    padding: 15px 40px;
+    margin: 20px;
+    border-radius: 15px;
+    border: none;
+    background: #ff7a18;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.level-btn:hover {
+    transform: scale(1.08);
+    background: #ff4d00;
+}
+
+#menu-image {
+    margin-top: 30px;
+}
+#menu-image img {
+    width: 300px;
+    max-width: 80%;
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    animation: flutuar 2.5s ease-in-out infinite;
+}
+@keyframes flutuar {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+}
+
+#panel {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+#game {
+    background: white;
+    color: #333;
+    border-radius: 30px;
+    padding: 60px;
+    margin: 10px auto;
+    width: 850px;
+    min-height: 400px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+    display: none;
+}
+
+.question {
+    font-size: 100px;
+    margin: 40px 0;
+    font-weight: bold;
+}
+
+input {
+    font-size: 50px;
+    width: 180px;
+    text-align: center;
+    padding: 10px;
+    border-radius: 12px;
+    border: 2px solid #ccc;
+}
+
+button {
+    font-size: 28px;
+    padding: 12px 30px;
+    margin-top: 25px;
+    border-radius: 15px;
+    border: none;
+    background: #ff7a18;
+    color: white;
+    cursor: pointer;
+}
+
+#feedback {
+    font-size: 40px;
+    margin-top: 20px;
+    height: 40px;
+}
+
+.star {
+    position: absolute;
+    font-size: 35px;
+    animation: floatUp 1s ease-out forwards;
+}
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+}
+
+#character { font-size: 60px; margin-top: 15px; }
+#medal { font-size: 70px; margin-top: 20px; }
+#footer { margin-top: 10px; font-size: 20px; }
+</style>
+</head>
+
+<body>
+
+<h1>
+  <span class="trovao">⚡</span>
+  PENSA RÁPIDO!
+  <span class="trovao">⚡</span>
+</h1>
+
+<div id="credits">RECURSO DIGITAL DESENVOLVIDO POR PROFESSOR MÁRIO MENEZES</div>
+
+<div id="menu">
+    <button class="level-btn" onclick="startGame(1)">Nível 1: Até 20</button>
+    <button class="level-btn" onclick="startGame(2)">Nível 2: 20 a 50</button>
+    <button class="level-btn" onclick="startGame(3)">Nível 3: 50 a 100</button>
+    <button class="level-btn" onclick="startGame(4)">Nível 4: 100 a 999</button>
+
+    <div id="menu-image">
+        <img src="menino.png" alt="Menino divertido">
+    </div>
+</div>
+
+<div id="panel" style="display:none;">
+    <div id="score">Pontuação: 0</div>
+    <div id="errors">Erros: 0</div>
+    <div id="timer">Tempo: 5:00</div>
+</div>
+
+<div id="game">
+    <div class="question" id="question">0 + 0</div>
+    <input type="number" id="answer">
+    <br>
+    <button onclick="checkAnswer()">Responder</button>
+    <button onclick="backToMenu()">Voltar ao Menu</button>
+    <div id="feedback"></div>
+    <div id="character">🙂</div>
+    <div id="medal"></div>
+</div>
+
+<div id="footer">email:mario_menezes2009@edu.madeira.gov.pt</div>
+
+<script>
+let num1, num2, correctAnswer;
+let score = 0;
+let errors = 0;
+let timeLeft = 300;
+let timer;
+let level = 1;
+
+const question = document.getElementById("question");
+const answer = document.getElementById("answer");
+const feedback = document.getElementById("feedback");
+const scoreDisplay = document.getElementById("score");
+const errorsDisplay = document.getElementById("errors");
+const timerDisplay = document.getElementById("timer");
+const menu = document.getElementById("menu");
+const panel = document.getElementById("panel");
+const gameDiv = document.getElementById("game");
+const character = document.getElementById("character");
+const medal = document.getElementById("medal");
+
+function startGame(selectedLevel) {
+    level = selectedLevel;
+    score = 0;
+    errors = 0;
+    timeLeft = 300;
+
+    menu.style.display = "none";
+    panel.style.display = "flex";
+    gameDiv.style.display = "block";
+
+    scoreDisplay.innerText = "Pontuação: 0";
+    errorsDisplay.innerText = "Erros: 0";
+    feedback.innerText = "";
+    character.innerText = "🙂";
+    medal.innerText = "";
+    answer.disabled = false;
+
+    newQuestion();
+    startTimer();
+}
+
+function newQuestion() {
+    let min, max;
+
+    if(level === 1) { min = 0; max = 20; }
+    if(level === 2) { min = 20; max = 50; }
+    if(level === 3) { min = 50; max = 100; }
+    if(level === 4) { min = 100; max = 999; }
+
+    if(Math.random() > 0.5) {
+        correctAnswer = Math.floor(Math.random() * (max - min + 1)) + min;
+        num1 = Math.floor(Math.random() * (correctAnswer - min + 1)) + min;
+        num2 = correctAnswer - num1;
+        question.innerText = `${num1} + ${num2}`;
+    } else {
+        num1 = Math.floor(Math.random() * (max - min + 1)) + min;
+        num2 = Math.floor(Math.random() * (num1 - min + 1)) + min;
+        correctAnswer = num1 - num2;
+        question.innerText = `${num1} - ${num2}`;
+    }
+
+    answer.value = "";
+    answer.focus();
+}
+
+function checkAnswer() {
+    let userAnswer = Number(answer.value);
+
+    if(userAnswer === correctAnswer) {
+        score++;
+        feedback.innerText = "🎉 Muito bem!";
+        character.innerText = "😄";
+        createStars();
+    } else {
+        errors++;
+        errorsDisplay.innerText = "Erros: " + errors;
+        feedback.innerText = `❌ Errado! O correto é: ${correctAnswer}`;
+        character.innerText = "😢";
+    }
+
+    scoreDisplay.innerText = "Pontuação: " + score;
+    newQuestion();
+}
+
+function createStars() {
+    for(let i=0; i<6; i++){
+        let star = document.createElement("div");
+        star.classList.add("star");
+        star.innerText = "⭐";
+        star.style.left = Math.random() * 450 + "px";
+        star.style.top = "200px";
+        gameDiv.appendChild(star);
+        setTimeout(()=>{ star.remove(); }, 1000);
+    }
+}
+
+function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(()=>{
+        timeLeft--;
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        timerDisplay.innerText = "Tempo: " + minutes + ":" + seconds.toString().padStart(2,'0');
+
+        if(timeLeft <= 0) {
+            clearInterval(timer);
+            endGame();
+        }
+    },1000);
+}
+
+function endGame() {
+    question.innerText = "🏁 FIM!";
+    answer.disabled = true;
+    feedback.innerText = "Pontuação final: " + score;
+    character.innerText = "🏆";
+
+    if(score <= 5) medal.innerText = "🥉";
+    else if(score <= 10) medal.innerText = "🥈";
+    else medal.innerText = "🥇";
+}
+
+function backToMenu() {
+    clearInterval(timer);
+    menu.style.display = "block";
+    panel.style.display = "none";
+    gameDiv.style.display = "none";
+}
+
+answer.addEventListener("keypress", function(e){
+    if(e.key === "Enter") checkAnswer();
+});
+</script>
+
+</body>
+</html>
